@@ -1,6 +1,7 @@
 # Imports
 import os
 import cv2
+import yaml
 import json
 import shutil
 import random
@@ -611,3 +612,91 @@ def validation_dataset_split_by_match(train_path, valid_path, split_ratio=0.2):
             moved_count += 1
 
     print(f"Done! Moved {len(matches_to_move)} matches ({moved_count} total images).")
+
+def convert_yolo_to_coco(yolo_path, coco_path):
+    # 1. Load data.yaml
+    yaml_path = os.path.join(yolo_path, 'data.yaml')
+    with open(yaml_path, 'r') as f:
+        data_config = yaml.safe_load(f)
+    
+    classes = data_config['names']
+    subsets = ['train', 'valid','test']
+    
+    # 2. Prepare COCO Directory Structure
+    # Standard COCO: images/ contains all or subset folders, annotations/ contains JSONs
+    for subset in subsets:
+        os.makedirs(os.path.join(coco_path, subset), exist_ok=True)
+
+    # 3. Process Subsets
+    for subset in subsets:
+        yolo_subset_img_dir = os.path.join(yolo_path, subset, 'images')
+        yolo_subset_lbl_dir = os.path.join(yolo_path, subset, 'labels')
+        
+        if not os.path.exists(yolo_subset_img_dir):
+            print(f"Skipping {subset}: Directory not found.")
+            continue
+
+        coco_data = {
+            "images": [],
+            "annotations": [],
+            "categories": [{"id": i, "name": name} for i, name in enumerate(classes)]
+        }
+
+        ann_id = 1
+        img_id = 1
+
+        print(f"Converting {subset}...")
+        for img_name in tqdm(os.listdir(yolo_subset_img_dir)):
+            if not img_name.lower().endswith(('.jpg', '.jpeg', '.png')):
+                continue
+
+            # Load image for dimensions
+            src_img_path = os.path.join(yolo_subset_img_dir, img_name)
+            img = cv2.imread(src_img_path)
+            if img is None: continue
+            h, w, _ = img.shape
+
+            # Copy image to new COCO directory
+            dest_img_path = os.path.join(coco_path, subset, img_name)
+            shutil.copy(src_img_path, dest_img_path)
+
+            coco_data["images"].append({
+                "id": img_id,
+                "file_name": img_name, # Stored relative to the subset folder
+                "width": w,
+                "height": h
+            })
+
+            # Process Label
+            label_name = os.path.splitext(img_name)[0] + ".txt"
+            label_path = os.path.join(yolo_subset_lbl_dir, label_name)
+            
+            if os.path.exists(label_path):
+                with open(label_path, 'r') as f:
+                    for line in f:
+                        parts = line.strip().split()
+                        cls, x_c, y_c, bw, bh = map(float, parts)
+
+                        # Math: Center-norm to Top-Left Pixel
+                        abs_w = bw * w
+                        abs_h = bh * h
+                        abs_x = (x_c * w) - (abs_w / 2)
+                        abs_y = (y_c * h) - (abs_h / 2)
+
+                        coco_data["annotations"].append({
+                            "id": ann_id,
+                            "image_id": img_id,
+                            "category_id": int(cls),
+                            "bbox": [round(abs_x, 2), round(abs_y, 2), round(abs_w, 2), round(abs_h, 2)],
+                            "area": round(abs_w * abs_h, 2),
+                            "iscrowd": 0
+                        })
+                        ann_id += 1
+            img_id += 1
+
+            # Save JSON
+            output_json = os.path.join(coco_path, subset, f"_annotations.coco.json")
+            with open(output_json, 'w') as f:
+                json.dump(coco_data, f)
+            
+    print(f"\nSuccessfully migrated to: {coco_path}")

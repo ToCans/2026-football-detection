@@ -1,10 +1,15 @@
-# 2026 Football Detection
+# ⚽ 2026 Football Detection
+
+[![JupyterNotebook][JupyterNotebook]][JupyterNotebook-url]
+[![PyTorch][PyTorch]][PyTorch-url]
+[![HuggingFace][HuggingFace]][HuggingFace-url]
+[![Roboflow][Roboflow]][Roboflow-url]
 
 A comparison of the latest state-of-the-art real-time object detection models on a **small** football player detection dataset consisting of **297** annotated training samples. Using the findings of this respository for a foundation, users can rapidly build a full-fledged football analysis systems with minimal, manual annotations.
 
 <div align="center">
   <img src="./documentation/results/121364_0_27-04-2026_17-06_yolo26x_detections.gif" width="600"/>
-  <p><em>YOLO26x's performance on the sample 5 video.</em></p>
+  <p><em>YOLO26x's performance on the video sample #5.</em></p>
 </div>
 
 After training, **Yolo26X** achieved the best performance with a **mAP50:95 score of 0.6807** across all four classes (balls, goalkeepers, players, and referees) and a **mAP50:95 score of 0.4689** for specifically the ball class.
@@ -13,7 +18,7 @@ After training, **Yolo26X** achieved the best performance with a **mAP50:95 scor
 - [YOLOv8x](https://docs.ultralytics.com/models/yolo26/) (CNN-based, 68.2M parameters)
 - [YOLOv26x](https://docs.ultralytics.com/models/yolo26/) (CNN-based, 55.7M parameters)
 - [RT-DETRv2](https://huggingface.co/docs/transformers/model_doc/rt_detr_v2) (Transformer-based, 43M and 76.8M  parameters)
-- [RF-DETR](https://rfdetr.roboflow.com/latest/) (Transformer-based, 33.7M parameters)
+- [RF-DETR Medium](https://rfdetr.roboflow.com/latest/) (Transformer-based, 33.7M parameters)
 
 ## 🗄️ Data
 🏷️ **Training, Validation, Test Data**
@@ -98,3 +103,14 @@ This repository lays the foundations for a strong football analysis system, but 
 - Apply active learning and only annotate samples using the images the fine-tuned detection model is most undertain about
 - Train a keypoint detecton model and use homography, to determine real world coordinates of detections
 - Start applying anaysis functions to gather match statistics like possession, player heatmaps, etc. 
+
+<!-- MARKDOWN LINKS & IMAGES -->
+<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
+[JupyterNotebook]: https://img.shields.io/badge/Jupyter_Notebook-F37626?style=for-the-badge&logo=jupyter&logoColor=white
+[JupyterNotebook-url]: https://jupyter.org/
+[PyTorch]: https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white
+[PyTorch-url]: https://pytorch.org/
+[HuggingFace]: https://img.shields.io/badge/Hugging_Face-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black
+[HuggingFace-url]: https://huggingface.co/
+[Roboflow]: https://img.shields.io/badge/Roboflow-6706CE?style=for-the-badge&logo=roboflow&logoColor=white
+[Roboflow-url]: https://roboflow.com/
